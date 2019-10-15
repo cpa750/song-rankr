@@ -1,7 +1,33 @@
+import shelve
 from random import choice
 from sys import argv
 
 from eduardo.eduardo import Elo
+
+# TODO: code ability to pickle the elo engine
+# TODO: add way of counting the number of comparisons each song has been in
+# Hacky method is just to make a dict and look it up each time
+
+# TODO: this mess needs a complete rewrite (complete with classes to manage data)
+
+class MatchCountTracker:
+    """
+    Simple class to track the amount of matches
+    that have been made by each song
+    """
+
+    self._match_counts = {}
+
+    def __init__(self, songlist):
+        for song in songlist:
+            self._match_counts[song] = 0
+
+    def add_to_match_count(self, song):
+        self._match_counts[song] += 1
+
+    def get_match_count(self, song):
+        return self._match_counts[song]
+
 
 def read_songs_in():
     with open(argv[1], 'r') as file:
@@ -18,11 +44,6 @@ def get_songs_to_compare(songlist):
         # put against itself
 
     return (song1, song2)
-
-def round(songlist):
-    song1_name, song2_name = get_songs_to_compare(songlist)
-
-    winner_name = get_user_choice(song1_name, song2_name)
 
 def get_user_choice(song1, song2):
     print("Which song is better?")
@@ -45,6 +66,11 @@ def write_list_to_file(songlist):
     with open(filename, 'w') as file:
         file.writelines(songlist)
 
+def pickle_elo(elo_engine, match_counts):
+    with shelve.open("elo") as db:
+        db["elo_engine"] = elo_engine
+        db["match_counts"] = match_counts
+  
 def main(num_of_rounds):
     songlist = read_songs_in()
     elo_engine = Elo()
